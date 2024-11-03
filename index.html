@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>����� ������ ������</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="form-container">
+            <div class="form-header">
+                <div class="header-icon">??</div>
+                <h1>����� ������ ������</h1>
+            </div>
+            <form id="employeeForm" class="needs-validation" novalidate>
+                <div class="input-group">
+                    <label for="name" class="form-label">�����:</label>
+                    <input type="text" class="form-control custom-input" id="name" name="name" required>
+                    <span class="focus-border"></span>
+                </div>
+                <div class="input-group">
+                    <label for="employeeId" class="form-label">��� ������:</label>
+                    <input type="text" class="form-control custom-input" id="employeeId" name="employeeId" required>
+                    <span class="focus-border"></span>
+                </div>
+                <div class="input-group">
+                    <label for="department" class="form-label">�����:</label>
+                    <input type="text" class="form-control custom-input" id="department" name="department" required>
+                    <span class="focus-border"></span>
+                </div>
+                <div class="input-group">
+                    <label for="image" class="form-label">���� ������:</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" class="form-control custom-file-input" id="image" name="image" accept="image/*">
+                        <span class="file-upload-text">���� ����</span>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">
+                    <span class="btn-text">����� ��������</span>
+                    <span class="btn-icon">??</span>
+                </button>
+            </form>
+            <div id="message" class="message-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const styles = document.createElement('style');
+        styles.textContent = `
+            /* Base Styles */
+            body {
+                background: linear-gradient(135deg, #f6f8fd 0%, #e9eeff 100%);
+                min-height: 100vh;
+                margin: 0;
+                padding: 20px;
+                font-family: system-ui, -apple-system, sans-serif;
+            }
+
+            .page-wrapper {
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .form-container {
+                background: rgba(255, 255, 255, 0.95);
+                width: 100%;
+                max-width: 550px;
+                border-radius: 24px;
+                padding: 2rem;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1),
+                            0 8px 20px rgba(0, 0, 0, 0.08);
+                backdrop-filter: blur(10px);
+                transform: translateY(0);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .form-container:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 25px 65px rgba(0, 0, 0, 0.12),
+                            0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Header Styles */
+            .form-header {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+
+            .header-icon {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                animation: floatIcon 3s ease-in-out infinite;
+            }
+
+            h1 {
+                color: #2c3e50;
+                font-size: 1.8rem;
+                font-weight: 700;
+                margin: 0;
+                background: linear-gradient(45deg, #2c3e50, #3498db);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            /* Input Group Styles */
+            .input-group {
+                position: relative;
+                margin-bottom: 1.5rem;
+            }
+
+            .form-label {
+                display: block;
+                color: #34495e;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+                transition: color 0.3s ease;
+            }
+
+            .custom-input {
+                width: 100%;
+                padding: 0.8rem 1rem;
+                border: 2px solid #e0e6ed;
+                border-radius: 12px;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+                background: #f8fafc;
+            }
+
+            .custom-input:focus {
+                border-color: #3498db;
+                background: #fff;
+                box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+                outline: none;
+            }
+
+            /* File Upload Styles */
+            .file-upload-wrapper {
+                position: relative;
+                overflow: hidden;
+                border-radius: 12px;
+                background: #f8fafc;
+                border: 2px dashed #e0e6ed;
+                padding: 1rem;
+                text-align: center;
+                transition: all 0.3s ease;
+            }
+
+            .file-upload-wrapper:hover {
+                border-color: #3498db;
+                background: #fff;
+            }
+
+            .custom-file-input {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                cursor: pointer;
+            }
+
+            .file-upload-text {
+                color: #7f8c8d;
+                font-size: 0.9rem;
+            }
+
+            /* Submit Button Styles */
+            .submit-btn {
+                width: 100%;
+                padding: 1rem;
+                border: none;
+                border-radius: 12px;
+                background: linear-gradient(45deg, #3498db, #2980b9);
+                color: white;
+                font-size: 1.1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                margin-top: 2rem;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .submit-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+            }
+
+            .submit-btn:active {
+                transform: translateY(0);
+            }
+
+            .btn-text {
+                position: relative;
+                z-index: 1;
+            }
+
+            .btn-icon {
+                font-size: 1.2rem;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* Message Container Styles */
+            .message-container {
+                margin-top: 1.5rem;
+                text-align: center;
+            }
+
+            .alert {
+                border-radius: 12px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                font-size: 0.95rem;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            .alert-success {
+                background: #d4edda;
+                border: 1px solid #c3e6cb;
+                color: #155724;
+            }
+
+            .alert-danger {
+                background: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+            }
+
+            /* Loading Spinner */
+            .spinner-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 1rem;
+            }
+
+            .spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #3498db;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+
+            /* Animations */
+            @keyframes floatIcon {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            /* Responsive Styles */
+            @media (max-width: 576px) {
+                .form-container {
+                    padding: 1.5rem;
+                }
+
+                h1 {
+                    font-size: 1.5rem;
+                }
+
+                .submit-btn {
+                    font-size: 1rem;
+                }
+            }
+        `;
+        document.head.appendChild(styles);
+
+        // Form handling
+        document.getElementById('employeeForm').onsubmit = function(event) {
+            event.preventDefault();
+            const messageDiv = document.getElementById('message');
+            const formData = new FormData(this);
+            
+            messageDiv.innerHTML = `
+                <div class="spinner-container">
+                    <div class="spinner"></div>
+                </div>
+            `;
+            
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    messageDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            ${response}
+                            <div style="margin-top: 0.5rem">?</div>
+                        </div>
+                    `;
+                    document.getElementById('employeeForm').reset();
+                })
+                .withFailureHandler(function(error) {
+                    messageDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            ��� ���: ${error.message}
+                            <div style="margin-top: 0.5rem">?</div>
+                        </div>
+                    `;
+                })
+                .onFormSubmit(formData);
+        };
+
+        // File input handling
+        document.getElementById('image').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || '���� ����';
+            e.target.parentElement.querySelector('.file-upload-text').textContent = fileName;
+        });
+    </script>
+</body>
+</html>

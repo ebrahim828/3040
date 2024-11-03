@@ -1,0 +1,173 @@
+// دالة لمعالجة تقديم النموذج وتسجيل بيانات الحضور
+function onFormSubmit(e) {
+  try {
+    // فتح جدول البيانات المحدد
+    var spreadsheet = SpreadsheetApp.openById('1teLFjLVrX2UbU7oQGIQv9oGU76fN04twm88pkLo3OAg');
+    var sheet = spreadsheet.getActiveSheet();
+    
+    // إنشاء صف جديد مع البيانات
+    var row = [
+      new Date(), // وقت التقديم
+      e.name,
+      e.employeeId,
+      e.department,
+      e.location || "لم يتم تحديد الموقع", // إضافة الموقع هنا
+      e.photo || "لم يتم التقاط صورة" // إضافة الصورة هنا
+    ];
+
+    // إضافة الصف إلى جدول البيانات
+    sheet.appendRow(row);
+
+    // إرسال بريد إلكتروني بالبيانات (اختياري)
+    // sendEmail(e.name, e.employeeId, e.department, e.location, e.photo);
+
+    return 'تم تسجيل الحضور بنجاح: ' + e.name + ' (' + e.employeeId + ')';
+  } catch (error) {
+    Logger.log('خطأ: ' + error.message);
+    return 'فشل في تسجيل الحضور: ' + error.message;
+  }
+}
+
+// دالة لإرسال بريد إلكتروني بالبيانات (اختياري)
+function sendEmail(name, employeeId, department, location, photo) {
+  var recipient = 'ebrahimtarak8@gmail.com';
+  var subject = 'تسجيل حضور موظف';
+  var body = 'تم تسجيل حضور موظف:\n\n' +
+             'الاسم: ' + name + '\n' +
+             'رقم الموظف: ' + employeeId + '\n' +
+             'القسم: ' + department + '\n' +
+             'الموقع: ' + location + '\n' +
+             'الصورة: ' + photo; // إضافة الصورة هنا
+
+  MailApp.sendEmail(recipient, subject, body);
+}
+
+// دالة لمعالجة عرض HTML
+function doGet() {
+  var htmlOutput = HtmlService.createHtmlOutput(`
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل حضور الموظف</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #videoElement {
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">تسجيل حضور الموظف</h1>
+        <form id="employeeForm">
+            <div class="mb-3">
+                <label for="name" class="form-label">الاسم:</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="employeeId" class="form-label">رقم الموظف:</label>
+                <input type="text" class="form-control" id="employeeId" name="employeeId" required>
+            </div>
+            <div class="mb-3">
+                <label for="department" class="form-label">القسم:</label>
+                <input type="text" class="form-control" id="department" name="department" required>
+            </div>
+            <input type="hidden" id="location" name="location">
+            <input type="hidden" id="photo" name="photo">
+            <button type="button" class="btn btn-secondary w-100 mb-3" id="startCamera">تفعيل الكاميرا</button>
+            <video id="videoElement" autoplay></video>
+            <button type="button" class="btn btn-primary w-100 mb-3" id="capturePhoto">التقاط الصورة</button>
+            <canvas id="canvas" style="display: none;"></canvas>
+            <button type="submit" class="btn btn-primary w-100">تسجيل الحضور</button>
+        </form>
+        <div id="message" class="mt-3 text-center"></div>
+    </div>
+
+    <script>
+        // الحصول على الموقع الجغرافي عند تحميل الصفحة
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var lat = position.coords.latitude;
+                var lon = position.coords.longitude;
+                document.getElementById('location').value = lat + ',' + lon; // حفظ الموقع في الحقل المخفي
+            }, function(error) {
+                console.error("خطأ في الحصول على الموقع: ", error.message);
+                alert("لم نتمكن من تحديد موقعك. يرجى التأكد من تفعيل الموقع في إعدادات المتصفح.");
+            });
+        } else {
+            console.log("الموقع الجغرافي غير مدعوم في هذا المتصفح");
+            alert("الموقع الجغرافي غير مدعوم في هذا المتصفح.");
+        }
+
+        // إعداد الكاميرا
+        document.getElementById('startCamera').onclick = function() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    var video = document.getElementById('videoElement');
+                    video.srcObject = stream;
+                })
+                .catch(function(error) {
+                    console.error("خطأ في الوصول إلى الكاميرا: ", error.message);
+                    alert("فشل في الوصول إلى الكاميرا.");
+                });
+        };
+
+        // التقاط الصورة
+        document.getElementById('capturePhoto').onclick = function() {
+            var canvas = document.getElementById('canvas');
+            var video = document.getElementById('videoElement');
+            var context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            document.getElementById('photo').value = canvas.toDataURL('image/png'); // حفظ الصورة في الحقل المخفي
+            alert("تم التقاط الصورة بنجاح!");
+        };
+
+        document.getElementById('employeeForm').onsubmit = function(event) {
+            event.preventDefault();
+            var formData = {
+                name: document.getElementById('name').value,
+                employeeId: document.getElementById('employeeId').value,
+                department: document.getElementById('department').value,
+                location: document.getElementById('location').value, // إضافة الموقع هنا
+                photo: document.getElementById('photo').value // إضافة الصورة هنا
+            };
+            
+            document.getElementById('message').innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">جارٍ التحميل...</span></div>';
+            
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    document.getElementById('message').innerHTML = '<div class="alert alert-success">' + response + '</div>';
+                    document.getElementById('employeeForm').reset();
+                    document.getElementById('canvas').style.display = 'none'; // إخفاء الكانفاس بعد الإرسال
+                })
+                .withFailureHandler(function(error) {
+                    document.getElementById('message').innerHTML = '<div class="alert alert-danger">حدث خطأ: ' + error + '</div>';
+                })
+                .onFormSubmit(formData);
+        }
+    </script>
+</body>
+</html>
+  `);
+  
+  return htmlOutput
+      .setTitle('تسجيل حضور الموظف')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
